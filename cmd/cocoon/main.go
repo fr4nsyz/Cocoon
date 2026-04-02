@@ -29,18 +29,28 @@ var rootCmd = &cobra.Command{
 Your projects run safely in their own space—nothing can touch your 
 machine or network.
 
+Network modes:
+  none     - Block all network connections (default, safest)
+  whitelist - Block network (limited - for future use)
+  full     - Allow all network (use for npm/pip install only)
+
+Common workflows:
+  cocoon npm start              # Run app with blocked network
+  cocoon --network=full npm install  # Install dependencies (needs network)
+  cocoon --network=full pip install -r requirements.txt
+
 Examples:
   cocoon python main.py
   cocoon npm start
   cocoon --expose-ports=3000,8080 npm start
-  cocoon --network=whitelist pip install -r requirements.txt`,
+  cocoon --network=full pip install -r requirements.txt`,
 	RunE: runSandbox,
 	Args: cobra.MinimumNArgs(1),
 }
 
 func init() {
 	rootCmd.Flags().StringVarP(&projectDir, "project-dir", "d", ".", "Project directory to sandbox")
-	rootCmd.Flags().StringVar(&networkMode, "network", "none", "Network mode: none, whitelist, full")
+	rootCmd.Flags().StringVar(&networkMode, "network", "none", "Network mode: none (block all), whitelist (limited), full (allow all)")
 	rootCmd.Flags().StringVar(&exposePorts, "expose-ports", "auto", "Ports to expose (auto-detect or comma-separated)")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Show blocked actions in real-time")
 	rootCmd.Flags().BoolVar(&noContainer, "no-container", false, "Force wrapper mode (no Docker)")

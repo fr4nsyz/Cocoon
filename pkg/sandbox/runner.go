@@ -88,16 +88,23 @@ func (r *Runner) buildDockerArgs() []string {
 		"--pids-limit=100",
 		"--memory=512m",
 		"--security-opt=no-new-privileges",
-		"--user=nonroot",
 	}
 
 	switch r.cfg.NetworkMode {
 	case "none":
 		args = append(args, "--network=none")
+		r.logger.Info("Network mode: blocked (no external connections)")
 	case "whitelist":
 		args = append(args, "--network=none")
+		r.logger.Warn("Whitelist mode is not yet fully implemented. Network is blocked.")
+		r.logger.Info("For package installs (npm install, pip install), use --network=full temporarily")
+		r.logger.Info("Allowed registries (for future use): %v", isolation.GetAllowedHosts())
+	case "full":
+		args = append(args, "--network=host")
+		r.logger.Warn("Network mode: full (all connections allowed - not recommended for running apps)")
 	default:
 		args = append(args, "--network=none")
+		r.logger.Info("Network mode: blocked (no external connections)")
 	}
 
 	for _, port := range r.cfg.ExposedPorts {
@@ -107,6 +114,7 @@ func (r *Runner) buildDockerArgs() []string {
 	args = append(args, "-v", fmt.Sprintf("%s:/sandbox:rw", r.cfg.ProjectDir))
 	args = append(args, "-w", "/sandbox")
 	args = append(args, "-e", "HOME=/sandbox")
+	args = append(args, "--user=1000")
 
 	args = append(args, getBaseImage(string(r.cfg.ProjectType)))
 
