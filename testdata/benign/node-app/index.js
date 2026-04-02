@@ -1,2 +1,2 @@
-console.log("Hello from SafeRun sandbox!");
+console.log("Hello from Cocoon sandbox!");
 console.log("This is a safe Node script");

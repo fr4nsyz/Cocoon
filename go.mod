@@ -1,4 +1,4 @@
-module github.com/saferun/saferun
+module github.com/cocoon/cocoon
 
 go 1.21
 

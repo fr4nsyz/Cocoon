@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**Project Name:** SafeRun  
+**Project Name:** Cocoon  
 **Type:** CLI tool for developer sandboxing  
 **Core Feature:** Zero-config sandbox that automatically isolates student projects from the host system, preventing malicious file writes, unauthorized network calls, and accidental API key exposure.  
 **Target Users:** Student developers, coding bootcamps, hackathon participants
@@ -27,7 +27,7 @@
 
 ### Core Design Principles
 
-1. **Zero-friction:** Students run `saferun python main.py` and it just works
+1. **Zero-friction:** Students run `cocoon python main.py` and it just works
 2. **Security-first defaults:** Block filesystem outside project, block network by default
 3. **Dev UX preserved:** Frontend hot-reload, localhost UIs work normally
 4. **Fail gracefully:** If container fails, fallback to soft sandboxing
@@ -37,11 +37,11 @@
 ## File Structure
 
 ```
-saferun/
+cocoon/
 ├── cmd/
-│   ├── saferun/
+│   ├── cocoon/
 │   │   └── main.go           # CLI entry point
-│   └── saferun-container/    # Container mode binary
+│   └── cocoon-container/    # Container mode binary
 ├── pkg/
 │   ├── sandbox/
 │   │   ├── runner.go         # Core sandbox execution logic
@@ -88,7 +88,7 @@ saferun/
 ### Week 1: Core Sandbox Execution
 
 - [ ] **Day 1-2:** CLI skeleton with argument parsing  
-  - `saferun <command>` wrapper that captures args  
+  - `cocoon <command>` wrapper that captures args  
   - Detect project type from directory contents
 
 - [ ] **Day 3-4:** Container-based execution  
@@ -152,7 +152,7 @@ func main() {
 }
 ```
 
-**Change:** Add new file `cmd/saferun/main.go`
+**Change:** Add new file `cmd/cocoon/main.go`
 
 ---
 
@@ -172,7 +172,7 @@ func BuildSafeDockerCmd(projectDir string, cmd []string) []string {
         "-v", projectDir + ":/sandbox:rw",
         "-w", "/sandbox",
         "-e", "HOME=/sandbox",
-        "saferun-base-image",
+        "cocoon-base-image",
     }
 }
 ```
@@ -330,9 +330,9 @@ func LogBlockedAction(action string, details string) {
 
 ### Environment Variables
 
-- `SAFERUN_NETWORK_MODE` - Default network mode
-- `SAFERUN_IMAGE` - Custom container image
-- `SAFERUN_WHITELIST` - Comma-separated allowed hosts
+- `COCOON_NETWORK_MODE` - Default network mode
+- `COCOON_IMAGE` - Custom container image
+- `COCOON_WHITELIST` - Comma-separated allowed hosts
 
 ---
 
@@ -368,7 +368,7 @@ func LogBlockedAction(action string, details string) {
 
 ```go
 // Example: React app typically uses port 3000
-// saferun npm start
+// cocoon npm start
 // → Auto-detects port 3000 from package.json
 // → Runs: docker run -p 3000:3000 ...
 // → User opens localhost:3000 in browser
@@ -415,26 +415,26 @@ testdata/
 
 ```bash
 # Quick install (macOS/Linux)
-curl -sSL https://get.saferun.dev | sh
+curl -sSL https://get.cocoon.dev | sh
 
 # Or via Go
-go install github.com/saferun/saferun@latest
+go install github.com/cocoon/cocoon@latest
 ```
 
 ### Usage
 
 ```bash
 # Python project
-saferun python main.py
+cocoon python main.py
 
 # Node project
-saferun npm start
+cocoon npm start
 
 # With custom ports
-saferun --expose-ports=3000,8080 npm start
+cocoon --expose-ports=3000,8080 npm start
 
 # Allow specific network
-saferun --network=whitelist npm install
+cocoon --network=whitelist npm install
 ```
 
 ---
@@ -454,7 +454,7 @@ saferun --network=whitelist npm install
 
 This plan delivers:
 
-1. **Zero-friction sandboxing:** `saferun <command>` just works
+1. **Zero-friction sandboxing:** `cocoon <command>` just works
 2. **Security-first defaults:** Filesystem, network, secrets all protected
 3. **Dev UX preserved:** Frontend UIs, hot-reload function normally
 4. **Cross-platform:** Works on Linux/macOS (Windows post-MVP)

@@ -1,1 +1,1 @@
-# Test requirements for SafeRun sandbox
+# Test requirements for Cocoon sandbox

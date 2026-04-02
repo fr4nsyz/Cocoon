@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/saferun/saferun/pkg/detection"
+	"github.com/cocoon/cocoon/pkg/detection"
 )
 
 type Config struct {

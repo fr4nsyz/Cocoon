@@ -6,9 +6,9 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/saferun/saferun/internal/config"
-	"github.com/saferun/saferun/internal/logging"
-	"github.com/saferun/saferun/pkg/isolation"
+	"github.com/cocoon/cocoon/internal/config"
+	"github.com/cocoon/cocoon/internal/logging"
+	"github.com/cocoon/cocoon/pkg/isolation"
 )
 
 var ErrSandboxNotAvailable = fmt.Errorf("sandbox not available")
@@ -131,7 +131,7 @@ func getBaseImage(projectType string) string {
 func (r *Runner) runWrapper() error {
 	r.logger.Info("Running in wrapper mode")
 
-	runner := getWrapperRunner(string(r.cfg.ProjectType))
+	runner := GetWrapperRunner(string(r.cfg.ProjectType))
 	if runner == nil {
 		return fmt.Errorf("no wrapper available for project type: %s", r.cfg.ProjectType)
 	}
@@ -147,6 +147,6 @@ func RegisterWrapper(projectType string, fn wrapperFunc) {
 	wrappers[projectType] = fn
 }
 
-func getWrapperRunner(projectType string) wrapperFunc {
+func GetWrapperRunner(projectType string) wrapperFunc {
 	return wrappers[projectType]
 }
