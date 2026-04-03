@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/cocoon/cocoon/internal/config"
@@ -99,8 +100,22 @@ func runSandbox(cmd *cobra.Command, args []string) error {
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {
-		if err == sandbox.ErrSandboxNotAvailable {
-			logger.Error("Docker not available. Install Docker or use --no-container for lightweight sandboxing.")
+		if logger != nil {
+			switch err {
+			case sandbox.ErrDockerNotAvailable:
+				logger.Error("Docker is not available. Install Docker or use --no-container for lightweight sandboxing.")
+				logger.Info("Get Docker: https://docs.docker.com/get-docker")
+			case sandbox.ErrProjectNotFound:
+				logger.Error("Project directory not found. Please check the path.")
+			case sandbox.ErrProjectTypeUnsupported:
+				logger.Error("Unsupported project type. Cocoon supports: Python, Node.js, Go, Ruby")
+			case sandbox.ErrRuntimeNotFound:
+				logger.Error("Runtime not found. Make sure Python or Node.js is installed.")
+			default:
+				logger.Error("%v", err)
+			}
+		} else {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		}
 		os.Exit(1)
 	}

@@ -19,7 +19,7 @@ func runPythonWrapper(cfg *config.Config, logger *logging.Logger) error {
 
 	pythonCmd := findPython()
 	if pythonCmd == "" {
-		return os.ErrNotExist
+		return sandbox.ErrRuntimeNotFound
 	}
 
 	args := cfg.Command
@@ -45,7 +45,7 @@ func runNodeWrapper(cfg *config.Config, logger *logging.Logger) error {
 
 	nodeCmd := findNode()
 	if nodeCmd == "" {
-		return os.ErrNotExist
+		return sandbox.ErrRuntimeNotFound
 	}
 
 	args := cfg.Command

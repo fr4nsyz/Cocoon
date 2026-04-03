@@ -1,12 +1,15 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/cocoon/cocoon/pkg/detection"
 )
+
+var ErrProjectNotFound = errors.New("project directory not found")
 
 type Config struct {
 	ProjectDir   string
@@ -32,7 +35,10 @@ func ResolveProjectDir(dir string) (string, error) {
 
 	info, err := os.Stat(absDir)
 	if err != nil {
-		return "", fmt.Errorf("project directory does not exist: %w", err)
+		if os.IsNotExist(err) {
+			return "", ErrProjectNotFound
+		}
+		return "", fmt.Errorf("project directory error: %w", err)
 	}
 
 	if !info.IsDir() {

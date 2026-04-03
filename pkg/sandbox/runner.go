@@ -11,8 +11,6 @@ import (
 	"github.com/cocoon/cocoon/pkg/isolation"
 )
 
-var ErrSandboxNotAvailable = fmt.Errorf("sandbox not available")
-
 type Runner struct {
 	cfg    *config.Config
 	logger *logging.Logger
@@ -141,7 +139,7 @@ func (r *Runner) runWrapper() error {
 
 	runner := GetWrapperRunner(string(r.cfg.ProjectType))
 	if runner == nil {
-		return fmt.Errorf("no wrapper available for project type: %s", r.cfg.ProjectType)
+		return fmt.Errorf("%w: %s", ErrProjectTypeUnsupported, r.cfg.ProjectType)
 	}
 
 	return runner(r.cfg, r.logger)
