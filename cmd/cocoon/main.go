@@ -32,12 +32,13 @@ machine or network.
 
 Network modes:
   none     - Block all network connections (default, safest)
+  local    - Allow localhost (for dev servers with exposed ports)
   whitelist - Block network (limited - for future use)
   full     - Allow all network (use for npm/pip install only)
 
 Common workflows:
-  cocoon npm start              # Run app with blocked network
-  cocoon --network=full npm install  # Install dependencies (needs network)
+  cocoon --expose-ports=3000 --network=local npm start  # Run app with local network
+  cocoon --network=full npm install              # Install dependencies (needs network)
   cocoon --network=full pip install -r requirements.txt
 
 Examples:
@@ -51,7 +52,7 @@ Examples:
 
 func init() {
 	rootCmd.Flags().StringVarP(&projectDir, "project-dir", "d", ".", "Project directory to sandbox")
-	rootCmd.Flags().StringVar(&networkMode, "network", "none", "Network mode: none (block all), whitelist (limited), full (allow all)")
+	rootCmd.Flags().StringVar(&networkMode, "network", "none", "Network mode: none (block all), local (localhost), whitelist (limited), full (allow all)")
 	rootCmd.Flags().StringVar(&exposePorts, "expose-ports", "auto", "Ports to expose (auto-detect or comma-separated)")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Show blocked actions in real-time")
 	rootCmd.Flags().BoolVar(&noContainer, "no-container", false, "Force wrapper mode (no Docker)")
@@ -73,7 +74,7 @@ func runSandbox(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	projectType := detection.DetectProjectType(absProjectDir)
+	projectType := detection.DetectProjectType(absProjectDir, args)
 	logger.Info("Detected project type: %s", projectType)
 
 	cfg = &config.Config{

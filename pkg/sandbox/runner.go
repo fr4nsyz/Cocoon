@@ -92,6 +92,14 @@ func (r *Runner) buildDockerArgs() []string {
 	case "none":
 		args = append(args, "--network=none")
 		r.logger.Info("Network mode: blocked (no external connections)")
+	case "local":
+		if len(r.cfg.ExposedPorts) > 0 {
+			args = append(args, "--network=bridge")
+			r.logger.Info("Network mode: local (localhost connections allowed, outbound blocked)")
+		} else {
+			args = append(args, "--network=none")
+			r.logger.Info("Network mode: blocked (no external connections)")
+		}
 	case "whitelist":
 		args = append(args, "--network=none")
 		r.logger.Warn("Whitelist mode is not yet fully implemented. Network is blocked.")

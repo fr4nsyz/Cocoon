@@ -18,7 +18,48 @@ const (
 	RubyProject    ProjectType = "ruby"
 )
 
-func DetectProjectType(dir string) ProjectType {
+func DetectProjectType(dir string, command []string) ProjectType {
+	if commandType := detectFromCommandArgs(command); commandType != UnknownProject {
+		return commandType
+	}
+	return detectFromFilesInDir(dir)
+}
+
+func detectFromCommandArgs(command []string) ProjectType {
+	if len(command) == 0 {
+		return UnknownProject
+	}
+	firstCmd := strings.ToLower(command[0])
+	switch {
+	case firstCmd == "python", firstCmd == "python3", firstCmd == "py", firstCmd == "pip", firstCmd == "pip3":
+		return PythonProject
+	case firstCmd == "node", firstCmd == "nodejs", firstCmd == "npm", firstCmd == "npx", firstCmd == "yarn":
+		return NodeProject
+	case firstCmd == "go":
+		return GoProject
+	case firstCmd == "ruby", firstCmd == "bundle", firstCmd == "rake":
+		return RubyProject
+	}
+	return UnknownProject
+}
+
+func detectFromCommand(dir string) ProjectType {
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return UnknownProject
+	}
+	for _, f := range files {
+		name := f.Name()
+		if name == "package.json" || name == "requirements.txt" ||
+			name == "setup.py" || name == "pyproject.toml" ||
+			name == "go.mod" || name == "Gemfile" {
+			return detectFromFilesInDir(dir)
+		}
+	}
+	return UnknownProject
+}
+
+func detectFromFilesInDir(dir string) ProjectType {
 	if _, err := os.Stat(filepath.Join(dir, "package.json")); err == nil {
 		return NodeProject
 	}

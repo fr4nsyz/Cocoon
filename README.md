@@ -153,6 +153,8 @@ When Docker is available, Cocoon runs your project inside an isolated container 
 - **Memory:** Limited to 512MB
 - **Processes:** Limited to 100
 
+> **Note about dependency installation:** When using `--network=full` for installing dependencies (e.g., `npm install`, `pip install`), the container mounts your project directory as read-write. This means that while the installation process runs inside the container, any created files (like `node_modules/` or installed packages) will appear directly in your host project directory. Postinstall scripts execute inside the container but can modify files in your host project folder. For maximum isolation during installation, consider using a temporary directory or reviewing packages before installation.
+
 ### Wrapper Mode (fallback)
 
 When Docker is unavailable, Cocoon runs your project directly with basic process isolation.
@@ -186,6 +188,18 @@ Cocoon is designed for student developers working with:
 - Tutorial code from the internet
 - Untrusted npm/pip packages
 - Learning projects that might accidentally expose secrets
+
+### What Cocoon Protects Against:
+- Malicious code writing files outside your project directory
+- Unauthorized network connections when using default (blocked) network mode
+- Accidental leakage of environment variables and secrets
+- Resource exhaustion attacks (memory/process limits)
+- Privilege escalation attempts (dropped capabilities, non-root user)
+
+### Limitations to Understand:
+- **During dependency installation with `--network=full`**: Container gets direct host network access and project directory is mounted read-write, allowing postinstall scripts to modify host project files
+- **Not a container escape guarantee**: While Cocoon applies strong isolation practices, determined attackers might still find container escape vulnerabilities (as with any container-based solution)
+- **Not for production workloads**: Designed for development/learning scenarios
 
 It is **not** a replacement for production-grade sandboxing. For production use, consider gVisor, Firejail, or proper container orchestration.
 
