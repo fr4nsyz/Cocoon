@@ -15,23 +15,13 @@ Students can install once and run projects safely without configuration.
 
 ## Installation
 
-### Quick Install (macOS / Linux)
-
 ```bash
-curl -sSL https://get.cocoon.dev | sh
+git clone git@github.com:fr4nsyz/Cocoon.git
+cd Cocoon
+go build -o cocoon ./cmd/cocoon
 ```
 
-### Via Go
-
-```bash
-go install github.com/cocoon/cocoon@latest
-```
-
-### Manual
-
-1. Download the latest release for your platform from [GitHub Releases](https://github.com/cocoon/cocoon/releases)
-2. Extract and add to your PATH
-3. Run `cocoon --help` to verify
+Then run `./cocoon --help` to verify.
 
 ## Requirements
 
