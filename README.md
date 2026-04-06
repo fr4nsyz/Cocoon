@@ -2,7 +2,7 @@
 
 Zero-config sandbox for running student projects safely.
 
-Your projects run in their own space—nothing can touch your machine or network.
+Your projects run in their own space. Nothing can touch your machine or network.
 
 ## What is Cocoon?
 
