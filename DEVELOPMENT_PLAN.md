@@ -3,9 +3,9 @@
 ## Project Overview
 
 **Project Name:** Cocoon  
-**Type:** CLI tool for developer sandboxing  
-**Core Feature:** Zero-config sandbox that automatically isolates student projects from the host system, preventing malicious file writes, unauthorized network calls, and accidental API key exposure.  
-**Target Users:** Student developers, coding bootcamps, hackathon participants
+**Type:** CLI tool for runtime sandboxing  
+**Core Feature:** Zero-config sandbox that isolates running applications from the host system, protecting against runtime vulnerabilities, unauthorized file access, network exfiltration, and secret leakage.  
+**Target Users:** Developers running untrusted code, testing third-party binaries, or demoing applications safely
 
 ---
 
@@ -16,7 +16,7 @@
 | Layer | Technology | Purpose |
 |-------|------------|---------|
 | Primary isolation | Docker/Podman containers | Process, filesystem, network isolation |
-| Fallback/lightweight | Language wrappers (Python/Node) | Soft sandboxing when Docker unavailable |
+| Fallback/lightweight | Language wrappers (Python/Node/Go) | Soft sandboxing when Docker unavailable |
 | CLI interface | Go binary | Cross-platform, single executable |
 
 ### Why Hybrid?
@@ -27,9 +27,9 @@
 
 ### Core Design Principles
 
-1. **Zero-friction:** Students run `cocoon python main.py` and it just works
+1. **Zero-friction:** Run `cocoon go run main.go` and it just works
 2. **Security-first defaults:** Block filesystem outside project, block network by default
-3. **Dev UX preserved:** Frontend hot-reload, localhost UIs work normally
+3. **Runtime protection:** Isolate running processes from host system
 4. **Fail gracefully:** If container fails, fallback to soft sandboxing
 
 ---
@@ -123,10 +123,12 @@ cocoon/
   - If Docker unavailable, use language-level sandboxing  
   - Python: intercept `os` and `requests` calls via monkey-patching  
   - Node: wrapper script that redirects fs/network calls
+  - Go: seccomp profiles + namespace restrictions
 
 - [ ] **Day 13:** Project detection & auto-config  
   - Auto-detect Python (requirements.txt, setup.py)  
   - Auto-detect Node (package.json)  
+  - Auto-detect Go (go.mod)
   - Auto-detect ports from config files
 
 - [ ] **Day 14:** Final polish  
@@ -253,6 +255,9 @@ func DetectProjectType(dir string) ProjectType {
     if _, err := os.Stat(filepath.Join(dir, "requirements.txt")); err == nil {
         return PythonProject
     }
+    if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+        return GoProject
+    }
     // ... more project types
     return UnknownProject
 }
@@ -262,16 +267,15 @@ func DetectProjectType(dir string) ProjectType {
 
 ---
 
-### 7. Port Detection (ports.py)
+### 7. Port Detection (ports.go)
 
 ```go
 // DetectExposedPorts reads config files for common dev ports
 func DetectExposedPorts(dir string) []int {
     ports := []int{}
-    // Check package.json for "start": "react-scripts start" (3000)
-    // Check package.json for "port" in config
-    // Check .env for PORT=3000
-    // Check webpack/vite config files
+    // Check for PORT env variable
+    // Check .env for PORT=8080
+    // Check config files for listen ports
     return ports
 }
 ```
@@ -290,6 +294,8 @@ func RunWithWrapper(projectType ProjectType, cmd []string) error {
         return runPythonWrapper(cmd)
     case NodeProject:
         return runNodeWrapper(cmd)
+    case GoProject:
+        return runGoWrapper(cmd)
     }
     return errors.New("unsupported project type for wrapper mode")
 }
@@ -362,22 +368,22 @@ func LogBlockedAction(action string, details string) {
 
 ---
 
-## Frontend UI Handling
+## Application Handling
 
 ### Automatic Port Detection & Exposure
 
 ```go
-// Example: React app typically uses port 3000
-// cocoon npm start
-// → Auto-detects port 3000 from package.json
-// → Runs: docker run -p 3000:3000 ...
-// → User opens localhost:3000 in browser
+// Example: Go HTTP server typically uses port 8080
+// cocoon go run main.go
+// → Auto-detects port 8080 from source or env
+// → Runs: docker run -p 8080:8080 ...
+// → User opens localhost:8080 in browser
 ```
 
 ### Hot Reload Support
 
 - Project directory mounted read-write (`-v project:/sandbox:rw`)
-- Frontend dev server (webpack, vite, etc.) works normally
+- Dev servers (air, reflex, etc.) work normally
 - File changes inside container reflected to host
 - No special configuration needed
 
@@ -392,7 +398,7 @@ testdata/
 ├── benign/
 │   ├── python-flask-app/    # Flask with routes
 │   ├── node-express/        # Express API
-│   ├── react-app/           # Create-react-app
+│   ├── go-app/              # Go HTTP server
 │   └── python-django/       # Django with runserver
 └── malicious/
     ├── write-outside/       # Attempts to write to /tmp
@@ -402,10 +408,10 @@ testdata/
 
 ### Validation Tests
 
-1. **Benign projects:** Run normally, verify UI accessible
+1. **Benign projects:** Run normally, verify service accessible
 2. **Malicious projects:** Verify writes blocked, network blocked, secrets protected
 3. **Performance:** Measure overhead vs. native execution
-4. **UX:** User testing with non-technical students
+4. **Runtime security:** Test against common runtime attack patterns
 
 ---
 
@@ -430,8 +436,11 @@ cocoon python main.py
 # Node project
 cocoon npm start
 
+# Go project
+cocoon go run main.go
+
 # With custom ports
-cocoon --expose-ports=3000,8080 npm start
+cocoon --expose-ports=8080 go run main.go
 
 # Allow specific network
 cocoon --network=whitelist npm install
@@ -456,7 +465,7 @@ This plan delivers:
 
 1. **Zero-friction sandboxing:** `cocoon <command>` just works
 2. **Security-first defaults:** Filesystem, network, secrets all protected
-3. **Dev UX preserved:** Frontend UIs, hot-reload function normally
+3. **Runtime protection:** Isolate running processes from host system
 4. **Cross-platform:** Works on Linux/macOS (Windows post-MVP)
 5. **Fail gracefully:** Container mode with wrapper fallback
 

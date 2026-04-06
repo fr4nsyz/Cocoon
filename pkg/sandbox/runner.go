@@ -83,9 +83,10 @@ func (r *Runner) buildDockerArgs() []string {
 		"run", "--rm",
 		"--read-only",
 		"--cap-drop=ALL",
-		"--pids-limit=100",
+		"--pids-limit=256",
 		"--memory=512m",
 		"--security-opt=no-new-privileges",
+		"--tmpfs", "/tmp:exec,mode=1777",
 	}
 
 	switch r.cfg.NetworkMode {
@@ -122,6 +123,10 @@ func (r *Runner) buildDockerArgs() []string {
 	args = append(args, "-e", "HOME=/sandbox")
 	args = append(args, "--user=1000")
 
+	if r.cfg.ProjectType == "go" {
+		args = append(args, "-e", "GOMODCACHE=/sandbox/.gomodcache")
+	}
+
 	args = append(args, getBaseImage(string(r.cfg.ProjectType)))
 
 	args = append(args, r.cfg.Command...)
@@ -133,7 +138,7 @@ func getBaseImage(projectType string) string {
 	images := map[string]string{
 		"python": "python:3.11-slim",
 		"node":   "node:20-slim",
-		"go":     "golang:1.21-slim",
+		"go":     "golang:1.23-bookworm",
 		"ruby":   "ruby:3.2-slim",
 	}
 	if img, ok := images[string(projectType)]; ok {
